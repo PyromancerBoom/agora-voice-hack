@@ -1,4 +1,6 @@
+const fs = require("fs");
 const http = require("http");
+const path = require("path");
 const { URL } = require("url");
 const {
   createJsonResponse,
@@ -27,12 +29,32 @@ const port = Number(process.env.AGORA_SESSION_SERVER_PORT || 8080);
 
 const BREAKDOWN_PER_CONVERSATION = 15;
 
+const VOICE_HTML = path.join(__dirname, "talk", "agora_voice.html");
+const AGORA_WEB_SDK = path.join(
+  __dirname,
+  "..",
+  "..",
+  "node_modules",
+  "agora-rtc-sdk-ng",
+  "AgoraRTC_N-production.js"
+);
+
 function ts() {
   return new Date().toTimeString().slice(0, 8);
 }
 
 function log(...args) {
   console.log(`[${ts()}]`, ...args);
+}
+
+function sendBinary(res, status, contentType, filePath) {
+  if (!fs.existsSync(filePath)) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end(`Missing file: ${filePath}`);
+    return;
+  }
+  res.writeHead(status, { "Content-Type": contentType });
+  fs.createReadStream(filePath).pipe(res);
 }
 
 function send(res, response) {
@@ -82,10 +104,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // ── Existing routes (unchanged) ──────────────────────────────────────────
-
     if (req.method === "GET" && pathname === "/health") {
       reply(createJsonResponse(200, { ok: true, service: "agora-session-server" }));
+      return;
+    }
+
+    if (req.method === "GET" && (pathname === "/" || pathname === "/agora-voice")) {
+      sendBinary(res, 200, "text/html; charset=utf-8", VOICE_HTML);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/static/agora-rtc.js") {
+      sendBinary(res, 200, "application/javascript; charset=utf-8", AGORA_WEB_SDK);
       return;
     }
 
@@ -333,6 +363,8 @@ const server = http.createServer(async (req, res) => {
         error: "Not found",
         routes: [
           "GET  /health",
+          "GET  /agora-voice",
+          "GET  /static/agora-rtc.js",
           "POST /api/agora/session/start",
           "POST /api/agora/session/stop",
           "POST /api/game/start",
@@ -365,6 +397,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, () => {
   console.log(`Agora session server listening on http://localhost:${port}`);
+  console.log(`In-Godot voice page: http://localhost:${port}/agora-voice`);
   console.log("Game routes active:");
   console.log("  POST /api/game/start");
   console.log("  GET  /api/game/state?sessionId=...");

@@ -1,5 +1,31 @@
 extends Control
 
+const CLOSED_OFFSETS := {
+	"left": -126.0,
+	"top": -248.0,
+	"right": 610.0,
+	"bottom": 324.0,
+}
+
+const OPEN_OFFSETS := {
+	"left": -812.0,
+	"top": -262.0,
+	"right": -76.0,
+	"bottom": 310.0,
+}
+
+const CLOSED_ROTATION := 0.0
+const OPEN_ROTATION := 0.0
+const CLOSED_SCALE := Vector2(0.93, 0.93)
+const OPEN_SCALE := Vector2.ONE
+const CLOSED_BACKDROP_ALPHA := 0.0
+const OPEN_BACKDROP_ALPHA := 0.5
+const CLOSED_BOOKMARK_ALPHA := 0.0
+const OPEN_BOOKMARK_ALPHA := 1.0
+const CLOSED_BOOKMARK_ROTATION := 0.0
+const OPEN_BOOKMARK_ROTATION := 0.0
+const TRANSITION_DURATION := 0.2
+
 const CORRECT_CASE := {
 	"suspect": 2,
 	"weapon": 1,
@@ -12,6 +38,9 @@ const THEORY_PIN_WEAPON := "[i]Pinned clue:[/i] The missing candlestick implies 
 const THEORY_PIN_TESTIMONY := "[i]Pinned clue:[/i] Daichi's changing testimony suggests he is hiding a timeline gap.\n\n[b]Lead:[/b] The contradiction may be fear rather than guilt, but it still narrows who saw the killer move."
 const THEORY_CROSS_CHECK := "[i]Cross-check complete:[/i] Ren and Daichi now carry the most pressure in the timeline.\n\n[b]Lead:[/b] The strongest version of the case is a planned movement through the kitchen passage during blackout using the missing candlestick."
 
+@onready var backdrop: ColorRect = $Backdrop
+@onready var journal_shell: PanelContainer = $JournalShell
+@onready var bookmark: Control = $JournalShell/Bookmark
 @onready var phase_summary: Label = $JournalShell/Margin/Book/LeftPage/CaseStatus/CaseStatusPadding/CaseStatusBody/PhaseSummary
 @onready var phase_hint: Label = $JournalShell/Margin/Book/LeftPage/CaseStatus/CaseStatusPadding/CaseStatusBody/PhaseHint
 @onready var theory_text: RichTextLabel = $JournalShell/Margin/Book/LeftPage/TheoryPanel/TheoryPadding/TheoryBody/TheoryText
@@ -28,6 +57,7 @@ const THEORY_CROSS_CHECK := "[i]Cross-check complete:[/i] Ren and Daichi now car
 @onready var submit_accusation_button: Button = $JournalShell/Margin/Book/RightPage/Case/CaseActions/SubmitAccusationButton
 
 var pinned_clue_index := -1
+var is_journal_open := false
 
 
 func _ready() -> void:
@@ -38,7 +68,9 @@ func _ready() -> void:
 	suspect_choice.item_selected.connect(_on_case_selection_changed)
 	weapon_choice.item_selected.connect(_on_case_selection_changed)
 	location_choice.item_selected.connect(_on_case_selection_changed)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_default_state()
+	_apply_pose(false)
 
 
 func _apply_default_state() -> void:
@@ -48,6 +80,59 @@ func _apply_default_state() -> void:
 	evidence_action_text.text = "Pinned clue: none"
 	accusation_note_text.text = "A false accusation should damage trust. Leave the case open until your timeline and object trail line up."
 	_update_case_summary()
+
+
+func toggle_journal() -> void:
+	set_journal_open(not is_journal_open)
+
+
+func set_journal_open(should_open: bool) -> void:
+	if is_journal_open == should_open:
+		return
+
+	is_journal_open = should_open
+	_animate_pose()
+
+
+func is_open() -> bool:
+	return is_journal_open
+
+
+func _apply_pose(opened: bool) -> void:
+	var offsets := OPEN_OFFSETS if opened else CLOSED_OFFSETS
+	journal_shell.offset_left = offsets.left
+	journal_shell.offset_top = offsets.top
+	journal_shell.offset_right = offsets.right
+	journal_shell.offset_bottom = offsets.bottom
+	journal_shell.rotation = OPEN_ROTATION if opened else CLOSED_ROTATION
+	journal_shell.scale = OPEN_SCALE if opened else CLOSED_SCALE
+	bookmark.modulate.a = OPEN_BOOKMARK_ALPHA if opened else CLOSED_BOOKMARK_ALPHA
+	bookmark.rotation = OPEN_BOOKMARK_ROTATION if opened else CLOSED_BOOKMARK_ROTATION
+	backdrop.color.a = OPEN_BACKDROP_ALPHA if opened else CLOSED_BACKDROP_ALPHA
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP if opened else Control.MOUSE_FILTER_IGNORE
+
+
+func _animate_pose() -> void:
+	var offsets := OPEN_OFFSETS if is_journal_open else CLOSED_OFFSETS
+	var target_rotation := OPEN_ROTATION if is_journal_open else CLOSED_ROTATION
+	var target_scale := OPEN_SCALE if is_journal_open else CLOSED_SCALE
+	var target_backdrop_alpha := OPEN_BACKDROP_ALPHA if is_journal_open else CLOSED_BACKDROP_ALPHA
+	var target_bookmark_alpha := OPEN_BOOKMARK_ALPHA if is_journal_open else CLOSED_BOOKMARK_ALPHA
+	var target_bookmark_rotation := OPEN_BOOKMARK_ROTATION if is_journal_open else CLOSED_BOOKMARK_ROTATION
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP if is_journal_open else Control.MOUSE_FILTER_IGNORE
+
+	var tween := create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.tween_property(journal_shell, "offset_left", offsets.left, TRANSITION_DURATION)
+	tween.tween_property(journal_shell, "offset_top", offsets.top, TRANSITION_DURATION)
+	tween.tween_property(journal_shell, "offset_right", offsets.right, TRANSITION_DURATION)
+	tween.tween_property(journal_shell, "offset_bottom", offsets.bottom, TRANSITION_DURATION)
+	tween.tween_property(journal_shell, "rotation", target_rotation, TRANSITION_DURATION)
+	tween.tween_property(journal_shell, "scale", target_scale, TRANSITION_DURATION)
+	tween.tween_property(bookmark, "modulate:a", target_bookmark_alpha, TRANSITION_DURATION)
+	tween.tween_property(bookmark, "rotation", target_bookmark_rotation, TRANSITION_DURATION)
+	tween.tween_property(backdrop, "color:a", target_backdrop_alpha, TRANSITION_DURATION)
 
 
 func _on_pin_clue_pressed() -> void:

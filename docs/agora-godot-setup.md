@@ -89,3 +89,13 @@ Once the Godot project is ready to consume this, the flow should be:
 5. When the round ends or the scene unloads, Godot calls `POST /api/agora/session/stop` with the `agentId`, and if needed also `channel` plus `agentUid`.
 
 That keeps all secrets server-side and matches Agora's token-authenticated setup.
+
+## In-scene voice (`agora_test.tscn`)
+
+Agora does not ship a Godot RTC plugin. This project runs the **Agora Web SDK** inside a **native WebView** so you can talk in the same scene:
+
+1. Install **[Godot WRY](https://godotengine.org/asset-library/asset/3426)** from the Asset Library and enable **Project → Project Settings → Plugins → Godot WRY**.
+2. Run `npm run agora:server` (it serves `GET /agora-voice` and the Web SDK at `GET /static/agora-rtc.js`).
+3. Open `godot/scenes/agora_test.tscn`, run the scene, press **Start Session**, allow the microphone when prompted.
+
+The WebView loads `http://<session-server>/agora-voice`; after a successful start, Godot posts RTC join credentials into the page so your mic and the agent share one channel.

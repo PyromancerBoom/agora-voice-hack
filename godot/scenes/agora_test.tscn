@@ -83,7 +83,7 @@ text = "Agora Voice Session Bench"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.701961, 0.784314, 0.788235, 0.95)
 theme_override_font_sizes/font_size = 15
-text = "Use this scene to verify Godot can start and stop a local Agora conversational session."
+text = "Start the session server, press Start Session, then talk with the AI in the voice panel (needs Godot WRY WebView)."
 autowrap_mode = 3
 
 [node name="Columns" type="HBoxContainer" parent="Margin/Layout"]
@@ -165,7 +165,7 @@ placeholder_text = "Optional if your local Node service sets AGORA_DEFAULT_PIPEL
 [node name="ControlsHint" type="Label" parent="Margin/Layout/Columns/ControlsPanel/ControlsMargin/ControlsBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.890196, 0.764706, 0.596078, 0.92)
-text = "Start `npm run agora:server` before using this scene."
+text = "Run `npm run agora:server`. Install AssetLib « Godot WRY » and enable the plugin for mic + speaker in this scene."
 autowrap_mode = 3
 
 [node name="Buttons" type="HBoxContainer" parent="Margin/Layout/Columns/ControlsPanel/ControlsMargin/ControlsBox"]
@@ -237,6 +237,22 @@ theme_override_constants/line_separation = 4
 bbcode_enabled = true
 scroll_following = true
 fit_content = false
+
+[node name="VoiceStrip" type="VBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VoiceHint" type="Label" parent="Margin/Layout/VoiceStrip"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.768627, 0.819608, 0.823529, 0.9)
+text = "Voice: install AssetLib « Godot WRY », enable the plugin, then run this scene."
+autowrap_mode = 3
+
+[node name="VoiceHost" type="Control" parent="Margin/Layout/VoiceStrip"]
+custom_minimum_size = Vector2(0, 260)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="StartRequest" type="HTTPRequest" parent="."]
 

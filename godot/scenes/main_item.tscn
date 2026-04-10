@@ -72,8 +72,6 @@ enabled = false
 [node name="World" type="Node2D" parent="." unique_id=45675150]
 
 [node name="Rooms" type="Node2D" parent="World" unique_id=1495869484 instance=ExtResource("1_g7qpi")]
-position = Vector2(40, -180)
-scale = Vector2(0.7, 0.7)
 
 [node name="MistBackdrop" type="Polygon2D" parent="World" unique_id=182887441]
 color = Color(0.784314, 0.823529, 0.694118, 1)

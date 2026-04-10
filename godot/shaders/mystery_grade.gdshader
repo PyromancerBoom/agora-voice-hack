@@ -10,20 +10,34 @@ shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear_mipmap;
 
+group_uniforms Retro;
+uniform float pixel_size : hint_range(1.0, 12.0, 0.5) = 2.5;
+group_uniforms;
+
 group_uniforms Posterize;
-uniform float palette_mix : hint_range(0.0, 1.0, 0.01) = 0.88;
+uniform float palette_mix : hint_range(0.0, 1.0, 0.01) = 0.68;
 uniform int lightness_steps : hint_range(2, 32, 1) = 14;
-uniform int chroma_steps : hint_range(2, 16, 1) = 6;
-uniform float hue_step_degrees : hint_range(5.0, 90.0, 1.0) = 18.0;
+uniform int chroma_steps : hint_range(2, 16, 1) = 8;
+uniform float hue_step_degrees : hint_range(5.0, 90.0, 1.0) = 12.0;
 group_uniforms;
 
 group_uniforms Atmosphere;
-uniform vec3 fog_tint : source_color = vec3(0.82, 0.86, 0.73);
-uniform float fog_strength : hint_range(0.0, 1.0, 0.01) = 0.18;
-uniform float bloom_strength : hint_range(0.0, 1.0, 0.01) = 0.18;
+uniform vec3 fog_tint : source_color = vec3(0.30, 0.20, 0.19);
+uniform float fog_strength : hint_range(0.0, 1.0, 0.01) = 0.08;
+uniform float bloom_strength : hint_range(0.0, 1.0, 0.01) = 0.22;
 uniform float bloom_lod : hint_range(0.0, 5.0, 0.1) = 2.4;
-uniform float vignette_strength : hint_range(0.0, 1.0, 0.01) = 0.34;
-uniform float shadow_crush : hint_range(0.5, 1.5, 0.01) = 1.08;
+uniform float vignette_strength : hint_range(0.0, 1.0, 0.01) = 0.32;
+uniform float shadow_crush : hint_range(0.5, 1.5, 0.01) = 1.06;
+uniform vec4 dust_color : source_color = vec4(0.93, 0.87, 0.72, 1.0);
+uniform float dust_density : hint_range(20.0, 240.0, 1.0) = 130.0;
+uniform float dust_size_min : hint_range(0.01, 0.25, 0.005) = 0.03;
+uniform float dust_size_max : hint_range(0.01, 0.35, 0.005) = 0.07;
+uniform float dust_opacity : hint_range(0.0, 1.0, 0.01) = 0.09;
+uniform float dust_softness : hint_range(0.1, 2.0, 0.05) = 0.45;
+uniform vec2 dust_scroll = vec2(0.003, -0.009);
+uniform vec2 dust_drift = vec2(0.003, 0.002);
+uniform float dust_wave_speed : hint_range(0.0, 3.0, 0.01) = 0.22;
+uniform float dust_wave_amount : hint_range(0.0, 0.2, 0.001) = 0.01;
 group_uniforms;
 
 float posterize_step(float value, float levels) {
@@ -107,9 +121,39 @@ vec3 oklch_to_rgb(vec3 lch) {
 	return clamp(srgb, 0.0, 1.0);
 }
 
+float hash12(vec2 p) {
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
+}
+
+float dust_layer(vec2 uv, float density, float size_mul, float offset) {
+	vec2 grid = vec2(density, density * 0.8);
+	vec2 id = floor(uv * grid + offset);
+	vec2 cell_uv = fract(uv * grid + offset) - 0.5;
+	float n = hash12(id);
+	float live = step(0.78, n);
+	vec2 seed = vec2(hash12(id + 13.7), hash12(id + 47.3)) - 0.5;
+	vec2 center = seed * 0.72;
+	vec2 drift = vec2(
+		sin(TIME * (dust_wave_speed * (0.8 + hash12(id + 71.1))) + n * TAU),
+		cos(TIME * (dust_wave_speed * (0.7 + hash12(id + 89.2))) + n * TAU)
+	);
+	cell_uv -= center + drift * dust_wave_amount;
+	float size = mix(dust_size_min, dust_size_max, n) * size_mul;
+	float d = max(abs(cell_uv.x), abs(cell_uv.y));
+	float edge = max(size * (1.0 - dust_softness), 0.0);
+	float mask = 1.0 - smoothstep(edge, size, d);
+	return mask * live;
+}
+
 void fragment() {
-	vec3 source = textureLod(screen_texture, SCREEN_UV, 0.0).rgb;
-	vec3 blurred = textureLod(screen_texture, SCREEN_UV, bloom_lod).rgb;
+	vec2 pixel_uv_size = SCREEN_PIXEL_SIZE * max(pixel_size, 1.0);
+	vec2 snapped_uv = (floor(SCREEN_UV / pixel_uv_size) + 0.5) * pixel_uv_size;
+	snapped_uv = clamp(snapped_uv, vec2(0.0), vec2(1.0));
+
+	vec3 source = textureLod(screen_texture, snapped_uv, 0.0).rgb;
+	vec3 blurred = textureLod(screen_texture, snapped_uv, bloom_lod).rgb;
 
 	vec3 oklch = rgb_to_oklch(source);
 	oklch.x = posterize_step(oklch.x, float(lightness_steps));
@@ -123,11 +167,20 @@ void fragment() {
 	float vignette = smoothstep(0.92, 0.18, distance(SCREEN_UV, vec2(0.5)));
 	float vertical_fog = smoothstep(0.15, 0.95, SCREEN_UV.y);
 	float bright_mask = smoothstep(0.45, 0.95, max(max(blurred.r, blurred.g), blurred.b));
+	vec2 dust_uv = SCREEN_UV + TIME * dust_scroll;
+	dust_uv.x += sin((SCREEN_UV.y + TIME * 0.08) * 8.0) * dust_drift.x;
+	dust_uv.y += cos((SCREEN_UV.x - TIME * 0.05) * 6.0) * dust_drift.y;
+	float dust_a = dust_layer(dust_uv, dust_density, 1.0, 11.0);
+	float dust_b = dust_layer(dust_uv * 1.21 + vec2(0.21, -0.17), dust_density * 0.8, 0.8, 41.0);
+	float dust = clamp(dust_a + dust_b * 0.8, 0.0, 1.0);
+	float center_fade = smoothstep(0.98, 0.2, distance(SCREEN_UV, vec2(0.5)));
+	float dust_mask = dust * dust_opacity * center_fade;
 
 	result *= mix(1.0, vignette, vignette_strength);
 	result = pow(result, vec3(shadow_crush));
 	result = mix(result, fog_tint, fog_strength * vertical_fog);
 	result += blurred * bright_mask * bloom_strength;
+	result = mix(result, dust_color.rgb, dust_mask * dust_color.a);
 
 	COLOR = vec4(clamp(result, 0.0, 1.0), 1.0);
 }
