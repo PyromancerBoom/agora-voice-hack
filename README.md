@@ -1,6 +1,6 @@
-# Agora Voice Cluedo
+# Hotmic Homicide
 
-Agora Voice Cluedo is a Godot-based detective game prototype for the Agora Voice AI Hackathon. The player investigates a murder by exploring a stylized mansion, collecting environmental clues, and interrogating autonomous NPCs through live voice conversations powered by Agora.
+Hotmic Homicide is a Godot-based detective game prototype for the Agora Voice AI Hackathon. The player investigates a murder by exploring a stylized mansion, collecting environmental clues, and interrogating autonomous NPCs through live voice conversations powered by Agora.
 
 This repository is being built as a playable vertical slice rather than a generic chatbot demo. The target loop is simple and readable:
 

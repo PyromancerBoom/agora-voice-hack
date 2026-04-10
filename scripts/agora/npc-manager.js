@@ -26,13 +26,23 @@ function usePipelineConfig() {
 }
 
 function buildLlmConfig(systemPrompt) {
+  const groqKey = process.env.GROQ_API_KEY;
   const mistralKey = process.env.MISTRAL_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
 
-  const url = mistralKey
+  const url = groqKey
+    ? "https://api.groq.com/openai/v1/chat/completions"
+    : mistralKey
     ? "https://api.mistral.ai/v1/chat/completions"
     : "https://api.openai.com/v1/chat/completions";
-  const api_key = mistralKey || openAiKey;
+
+  const api_key = groqKey || mistralKey || openAiKey;
+
+  const defaultModel = groqKey
+    ? "llama-3.3-70b-versatile"
+    : mistralKey
+    ? "mistral-small-latest"
+    : "gpt-4o-mini";
 
   return {
     vendor: "custom",
@@ -41,7 +51,7 @@ function buildLlmConfig(systemPrompt) {
     system_messages: [{ role: "system", content: systemPrompt }],
     max_history: 32,
     params: {
-      model: process.env.LLM_MODEL || (mistralKey ? "mistral-small-latest" : "gpt-4o-mini"),
+      model: process.env.LLM_MODEL || defaultModel,
       max_tokens: 512,
       temperature: 0.7,
       stream: true,
