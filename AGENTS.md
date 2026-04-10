@@ -146,8 +146,10 @@ Each NPC should be treated as an autonomous character with four layers:
 - Do not invent systems that are not needed for the current milestone.
 - When gameplay rules are underspecified, choose the smallest implementation that preserves the detective fantasy and voice-agent core.
 - Preserve unrelated user changes.
-- Use a git-first workflow for agent changes: create a branch, stage the relevant files, commit them, and push the branch so work is not left only in the local worktree.
-- Before finishing, check whether the branch can merge cleanly into `main` and surface any conflicts or merge blockers explicitly.
+- Use a git-first workflow for agent changes with `git worktree`: create or use a dedicated worktree for the task, make changes there, stage the relevant files, commit them, and push the branch so work is not left only in an untracked local state.
+- After pushing, create a PR and immediately attempt to merge it. Do not wait to merge later if the branch is ready.
+- If the merge hits conflicts, resolve them immediately with the goal of preserving important work on both sides. Do not leave known conflicts unresolved.
+- After resolving conflicts, complete the merge attempt and verify that no important behavior, content, or instructions were lost in the final merged result.
 
 ## Validation
 

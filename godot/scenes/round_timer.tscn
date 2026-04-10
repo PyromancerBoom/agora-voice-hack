@@ -1,0 +1,232 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/round_timer.gd" id="1_lptmu"]
+[ext_resource type="FontFile" path="res://assets/fonts/LilitaOne-Regular.ttf" id="2_0v1ry"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_timer_frame"]
+bg_color = Color(0.835294, 0.729412, 0.545098, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.309804, 0.219608, 0.141176, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 6
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.34)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_timer_inner"]
+bg_color = Color(0.901961, 0.807843, 0.627451, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.588235, 0.439216, 0.294118, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 3
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_timer_value"]
+font = ExtResource("2_0v1ry")
+font_size = 42
+font_color = Color(0.101961, 0.0784314, 0.0666667, 1)
+outline_size = 1
+outline_color = Color(0.992157, 0.952941, 0.862745, 0.55)
+
+[sub_resource type="LabelSettings" id="LabelSettings_timer_caption"]
+font = ExtResource("2_0v1ry")
+font_size = 14
+font_color = Color(0.360784, 0.270588, 0.188235, 1)
+outline_size = 1
+outline_color = Color(0.976471, 0.929412, 0.839216, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_track"]
+bg_color = Color(0.278431, 0.203922, 0.141176, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.501961, 0.372549, 0.243137, 0.95)
+corner_radius_top_left = 7
+corner_radius_top_right = 3
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.529412, 0.376471, 0.231373, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 1
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 1
+
+[node name="RoundTimer" type="Control"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -404.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 222.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("1_lptmu")
+
+[node name="TimerShadow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 370.0
+offset_bottom = 190.0
+rotation = 0.0523599
+color = Color(0, 0, 0, 0.22)
+
+[node name="TimerFrame" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_timer_frame")
+
+[node name="LeftBeam" type="ColorRect" parent="TimerFrame"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 44.0
+offset_bottom = 76.0
+rotation = -0.733038
+color = Color(0.964706, 0.870588, 0.678431, 0.85)
+
+[node name="RightBeam" type="ColorRect" parent="TimerFrame"]
+layout_mode = 0
+offset_left = 314.0
+offset_top = 17.0
+offset_right = 342.0
+offset_bottom = 75.0
+rotation = -0.733038
+color = Color(0.964706, 0.870588, 0.678431, 0.78)
+
+[node name="TopBand" type="ColorRect" parent="TimerFrame"]
+layout_mode = 0
+offset_left = 62.0
+offset_top = 16.0
+offset_right = 302.0
+offset_bottom = 34.0
+color = Color(0.658824, 0.478431, 0.294118, 0.9)
+
+[node name="InnerPanel" type="PanelContainer" parent="TimerFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 24.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_timer_inner")
+
+[node name="TimerMargin" type="MarginContainer" parent="TimerFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 34.0
+offset_right = -28.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="TimerLayout" type="VBoxContainer" parent="TimerFrame/TimerMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderRow" type="HBoxContainer" parent="TimerFrame/TimerMargin/TimerLayout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoundTag" type="Label" parent="TimerFrame/TimerMargin/TimerLayout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+label_settings = SubResource("LabelSettings_timer_caption")
+text = "ROUND I"
+
+[node name="Divider" type="ColorRect" parent="TimerFrame/TimerMargin/TimerLayout/HeaderRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+color = Color(0.458824, 0.337255, 0.227451, 0.55)
+
+[node name="WindowTag" type="Label" parent="TimerFrame/TimerMargin/TimerLayout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+label_settings = SubResource("LabelSettings_timer_caption")
+text = "MANOR CLOCK"
+
+[node name="ClockRow" type="HBoxContainer" parent="TimerFrame/TimerMargin/TimerLayout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TimerValue" type="Label" parent="TimerFrame/TimerMargin/TimerLayout/ClockRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+label_settings = SubResource("LabelSettings_timer_value")
+text = "01:00"
+
+[node name="TimerCaption" type="Label" parent="TimerFrame/TimerMargin/TimerLayout/ClockRow"]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_timer_caption")
+text = "INVESTIGATION WINDOW"
+autowrap_mode = 3
+
+[node name="ProgressTrack" type="PanelContainer" parent="TimerFrame/TimerMargin/TimerLayout"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+clip_contents = true
+theme_override_styles/panel = SubResource("StyleBoxFlat_progress_track")
+
+[node name="ProgressFill" type="ColorRect" parent="TimerFrame/TimerMargin/TimerLayout/ProgressTrack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.529412, 0.376471, 0.231373, 1)
+
+[node name="StatusRow" type="VBoxContainer" parent="TimerFrame/TimerMargin/TimerLayout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatusLabel" type="Label" parent="TimerFrame/TimerMargin/TimerLayout/StatusRow"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_timer_caption")
+text = "BLACKOUT BRIEF"
+
+[node name="PhaseText" type="Label" parent="TimerFrame/TimerMargin/TimerLayout/StatusRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.286275, 0.215686, 0.156863, 1)
+theme_override_font_sizes/font_size = 14
+text = "Use the lit rooms to interrogate suspects, track noise, and build the case before blackout."
+autowrap_mode = 3
