@@ -10,6 +10,9 @@ const NPC_AGENT_UIDS = {
 
 const NPC_GREETING = "Good evening, detective. What is it you want?";
 
+/** Last resort if nothing else validates (Adam — common preset voice). */
+const BUILTIN_DEFAULT_VOICE = "pNInz6obpgDQGcFmaJgB";
+
 function useInlineConfig() {
   const llmKey = process.env.MISTRAL_API_KEY || process.env.OPENAI_API_KEY;
   return Boolean(llmKey && process.env.ELEVENLABS_API_KEY);
@@ -43,10 +46,105 @@ function buildLlmConfig(systemPrompt) {
   };
 }
 
-function buildTtsConfig(npcProfile) {
+function preferredVoiceIdSync(npcProfile) {
+  const envKey = `ELEVENLABS_VOICE_${npcProfile.npcId.toUpperCase()}`;
+  return process.env[envKey] || npcProfile.voiceId;
+}
+
+/**
+ * Ordered candidates: per-NPC env → profile JSON → global fallback env → built-in default.
+ * Deduplicates while preserving order.
+ */
+function voiceIdCandidates(npcProfile) {
+  const parts = [
+    process.env[`ELEVENLABS_VOICE_${npcProfile.npcId.toUpperCase()}`],
+    npcProfile.voiceId,
+    process.env.ELEVENLABS_FALLBACK_VOICE_ID,
+    BUILTIN_DEFAULT_VOICE,
+  ];
+  const seen = new Set();
+  const out = [];
+  for (const id of parts) {
+    if (id && typeof id === "string" && id.trim() && !seen.has(id.trim())) {
+      const t = id.trim();
+      seen.add(t);
+      out.push(t);
+    }
+  }
+  return out.length ? out : [BUILTIN_DEFAULT_VOICE];
+}
+
+async function validateElevenLabsVoice(apiKey, voiceId) {
+  if (!voiceId || !apiKey) return false;
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/voices/${encodeURIComponent(voiceId)}`,
+    { headers: { "xi-api-key": apiKey } }
+  );
+  return res.ok;
+}
+
+/**
+ * Picks the first voice_id that exists for this ElevenLabs API key.
+ * Logs warnings for rejected IDs. Set ELEVENLABS_VOICE_DEBUG=1 for per-attempt logs.
+ * Set ELEVENLABS_SKIP_VOICE_VALIDATE=1 to skip HTTP checks (first candidate only).
+ */
+async function resolveVoiceIdForNpc(npcProfile) {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) {
+    throw new Error("ELEVENLABS_API_KEY is required for inline TTS");
+  }
+
+  const candidates = voiceIdCandidates(npcProfile);
+  const debug = process.env.ELEVENLABS_VOICE_DEBUG === "1";
+  const skipValidate = process.env.ELEVENLABS_SKIP_VOICE_VALIDATE === "1";
+
+  if (skipValidate) {
+    const chosen = candidates[0];
+    console.warn(
+      `[ElevenLabs] ${npcProfile.npcId}: ELEVENLABS_SKIP_VOICE_VALIDATE=1 — using first candidate without check: ${chosen}`
+    );
+    return chosen;
+  }
+
+  for (const candidate of candidates) {
+    if (debug) {
+      console.log(
+        `[ElevenLabs] ${npcProfile.npcId}: validating voice_id=${candidate} …`
+      );
+    }
+    const ok = await validateElevenLabsVoice(apiKey, candidate);
+    if (ok) {
+      if (candidate !== preferredVoiceIdSync(npcProfile)) {
+        console.warn(
+          `[ElevenLabs] ${npcProfile.npcId}: preferred voice unavailable for this API key; using fallback voice_id=${candidate}`
+        );
+      } else {
+        console.log(
+          `[ElevenLabs] ${npcProfile.npcId}: using voice_id=${candidate}`
+        );
+      }
+      return candidate;
+    }
+    console.warn(
+      `[ElevenLabs] ${npcProfile.npcId}: voice_id not usable with current API key (404/forbidden): ${candidate}`
+    );
+  }
+
+  throw new Error(
+    `ElevenLabs: no valid voice for NPC "${npcProfile.npcId}". ` +
+      `Add voices to the SAME account as ELEVENLABS_API_KEY, or set ELEVENLABS_FALLBACK_VOICE_ID. ` +
+      `Run: npm run agora:diagnose`
+  );
+}
+
+/**
+ * @param {string|object} voiceIdOrProfile — resolved voice id string, or npc profile (sync pick only, no API)
+ */
+function buildTtsConfig(voiceIdOrProfile) {
   const voiceId =
-    process.env[`ELEVENLABS_VOICE_${npcProfile.npcId.toUpperCase()}`] ||
-    npcProfile.voiceId;
+    typeof voiceIdOrProfile === "string"
+      ? voiceIdOrProfile
+      : preferredVoiceIdSync(voiceIdOrProfile);
 
   return {
     vendor: "elevenlabs",
@@ -89,7 +187,8 @@ async function spawnNpcAgent(npcProfile, npcState, scenario, playerUid) {
 
   if (inline) {
     sessionInput.llm = buildLlmConfig(systemPrompt);
-    sessionInput.tts = buildTtsConfig(npcProfile);
+    const voiceId = await resolveVoiceIdForNpc(npcProfile);
+    sessionInput.tts = buildTtsConfig(voiceId);
   } else {
     sessionInput.pipelineId = process.env.AGORA_DEFAULT_PIPELINE_ID;
   }
@@ -125,4 +224,6 @@ module.exports = {
   NPC_AGENT_UIDS,
   buildLlmConfig,
   buildTtsConfig,
+  resolveVoiceIdForNpc,
+  voiceIdCandidates,
 };

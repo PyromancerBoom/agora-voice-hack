@@ -10,7 +10,11 @@ loadEnvFile();
 const { ExpiresIn, generateRtcToken, generateConvoAIToken } = require(
   "agora-agent-server-sdk"
 );
-const { buildLlmConfig, buildTtsConfig } = require("./npc-manager");
+const {
+  buildLlmConfig,
+  buildTtsConfig,
+  resolveVoiceIdForNpc,
+} = require("./npc-manager");
 const npcProfiles = require("./data/npc-profiles.json");
 
 function mask(v) {
@@ -116,19 +120,11 @@ async function testElevenLabs() {
     data.subscription?.tier || data.subscription?.tier_name || "see raw"
   );
   const butler = npcProfiles.find((p) => p.npcId === "butler");
-  const voiceId =
-    process.env.ELEVENLABS_VOICE_BUTLER || butler?.voiceId || "";
-  const vres = await fetch(
-    `https://api.elevenlabs.io/v1/voices/${voiceId}`,
-    { headers: { "xi-api-key": key } }
+  const voiceId = await resolveVoiceIdForNpc(butler);
+  console.log(
+    "OK: Butler spawn will use voice_id (after env/profile/fallback chain):",
+    voiceId
   );
-  if (!vres.ok) {
-    const vt = await vres.text();
-    throw new Error(
-      `Voice ID check failed (${voiceId}): ${vres.status} ${vt.slice(0, 200)}`
-    );
-  }
-  console.log("OK: Butler voice_id resolves on ElevenLabs API");
 }
 
 function testAgoraTokens() {
@@ -156,16 +152,19 @@ function testAgoraTokens() {
   console.log("OK: RTC token length", rtc.length, "| ConvoAI token length", convo.length);
 }
 
-function printPayloadShape() {
+async function printPayloadShape() {
   const profile = npcProfiles.find((p) => p.npcId === "butler");
   const llm = buildLlmConfig("Diagnostic stub prompt.");
-  const tts = buildTtsConfig(profile);
+  const voiceId = await resolveVoiceIdForNpc(profile);
+  const tts = buildTtsConfig(voiceId);
   console.log("LLM (redacted):\n", JSON.stringify(redactDeep(llm), null, 2));
   console.log("TTS (redacted):\n", JSON.stringify(redactDeep(tts), null, 2));
 }
 
 async function testLiveJoin() {
   const { startSession, stopSession } = require("./agora-service");
+  const profile = npcProfiles.find((p) => p.npcId === "butler");
+  const voiceId = await resolveVoiceIdForNpc(profile);
   const channel = `diag-live-${Date.now()}`;
   console.log("Starting agent on channel", channel, "…");
   const result = await startSession({
@@ -175,7 +174,7 @@ async function testLiveJoin() {
     greetingMessage: "Diagnostic greeting.",
     failureMessage: "Diagnostic failure.",
     llm: buildLlmConfig("You are a test assistant. Say one short sentence."),
-    tts: buildTtsConfig(npcProfiles.find((p) => p.npcId === "butler")),
+    tts: buildTtsConfig(voiceId),
     idleTimeout: 60,
   });
   const agentId = result.agent?.agent_id;
@@ -206,9 +205,7 @@ async function main() {
   await step("4) Agora token generation (RTC + ConvoAI)", () =>
     Promise.resolve(testAgoraTokens())
   );
-  await step("5) Payload shape we send to /join", () =>
-    Promise.resolve(printPayloadShape())
-  );
+  await step("5) Payload shape we send to /join", printPayloadShape);
 
   if (process.argv.includes("--live")) {
     await step("6) LIVE Agora join + leave (uses quota)", testLiveJoin);
