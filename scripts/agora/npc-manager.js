@@ -27,14 +27,15 @@ function buildLlmConfig(systemPrompt) {
     ? "https://api.mistral.ai/v1/chat/completions"
     : "https://api.openai.com/v1/chat/completions";
   const api_key = mistralKey || openAiKey;
-  const model = process.env.LLM_MODEL || (mistralKey ? "mistral-small-latest" : "gpt-4o-mini");
 
   return {
     url,
     api_key,
-    model,
     system_messages: [{ role: "system", content: systemPrompt }],
-    max_tokens: 512,
+    params: {
+      model: process.env.LLM_MODEL || (mistralKey ? "mistral-small-latest" : "gpt-4o-mini"),
+      max_tokens: 512,
+    },
   };
 }
 
@@ -46,9 +47,11 @@ function buildTtsConfig(npcProfile) {
   return {
     vendor: "elevenlabs",
     params: {
+      base_url: "wss://api.elevenlabs.io/v1",
       key: process.env.ELEVENLABS_API_KEY,
+      model_id: "eleven_flash_v2_5",
       voice_id: voiceId,
-      model_id: "eleven_turbo_v2",
+      sample_rate: 24000,
     },
   };
 }

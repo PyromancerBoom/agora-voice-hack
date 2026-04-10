@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "WebFetch(domain:docs.agora.io)"
+      "WebFetch(domain:docs.agora.io)",
+      "WebFetch(domain:www.agora.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)"
     ]
   }
 }
