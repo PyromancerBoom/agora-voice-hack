@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Shader" path="res://shaders/mystery_grade.gdshader" id="1_xq7jv"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2_e0q11"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/characters/detective_walk_0.png" id="4_7g0ar"]
 [ext_resource type="Texture2D" path="res://assets/characters/detective_walk_1.png" id="5_guw7o"]
 [ext_resource type="Script" path="res://scripts/interaction_prompt.gd" id="5_4ln3b"]
+[ext_resource type="Script" path="res://scripts/minimap_view.gd" id="5_kt1vu"]
 [ext_resource type="FontFile" path="res://assets/fonts/LilitaOne-Regular.ttf" id="5_hj4rt"]
 [ext_resource type="Texture2D" path="res://assets/characters/detective_walk_2.png" id="6_cms5n"]
 [ext_resource type="Texture2D" path="res://assets/characters/detective_walk_3.png" id="7_kdjc7"]
@@ -20,10 +21,39 @@ shader = ExtResource("1_xq7jv")
 size = Vector2(34, 18)
 
 [sub_resource type="LabelSettings" id="LabelSettings_3aovx"]
+font = ExtResource("5_hj4rt")
 font_size = 18
 font_color = Color(0.952941, 0.956863, 0.886275, 1)
 outline_size = 8
 outline_color = Color(0.0313726, 0.0392157, 0.0470588, 0.85)
+
+[sub_resource type="LabelSettings" id="LabelSettings_4tr4r"]
+font = ExtResource("5_hj4rt")
+font_size = 15
+font_color = Color(0.85098, 0.917647, 0.913725, 1)
+outline_size = 6
+outline_color = Color(0.0313726, 0.0392157, 0.0470588, 0.92)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7fb4k"]
+font = ExtResource("5_hj4rt")
+font_size = 12
+font_color = Color(0.980392, 0.819608, 0.560784, 1)
+outline_size = 5
+outline_color = Color(0.0313726, 0.0392157, 0.0470588, 0.95)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ury2m"]
+bg_color = Color(0.0352941, 0.0509804, 0.0745098, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.615686, 0.372549, 0.32)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.22)
+shadow_size = 8
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_detective"]
 animations = [{
@@ -410,9 +440,48 @@ color = Color(1, 1, 1, 1)
 [node name="Hint" type="Label" parent="UI/Overlay"]
 offset_left = 28.0
 offset_top = 26.0
-offset_right = 419.0
-offset_bottom = 74.0
+offset_right = 676.0
+offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_3aovx")
-text = "Arrow keys move the detective through the 2.5D scene."
+text = "Arrow keys move the detective. Use the minimap to track your route before blackout."
+autowrap_mode = 3
 
 [node name="RoundTimer" parent="UI/Overlay" instance=ExtResource("9_d6qs8")]
+
+[node name="MinimapPanel" type="PanelContainer" parent="UI/Overlay"]
+offset_left = 938.0
+offset_top = 474.0
+offset_right = 1248.0
+offset_bottom = 694.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ury2m")
+
+[node name="MinimapMargin" type="MarginContainer" parent="UI/Overlay/MinimapPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="MinimapContent" type="VBoxContainer" parent="UI/Overlay/MinimapPanel/MinimapMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MinimapHeader" type="Label" parent="UI/Overlay/MinimapPanel/MinimapMargin/MinimapContent"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_7fb4k")
+text = "SHRINE GROUNDS"
+horizontal_alignment = 1
+
+[node name="MinimapSubhead" type="Label" parent="UI/Overlay/MinimapPanel/MinimapMargin/MinimapContent"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_4tr4r")
+text = "Live player position and landmarks"
+horizontal_alignment = 1
+
+[node name="Minimap" type="Control" parent="UI/Overlay/MinimapPanel/MinimapMargin/MinimapContent"]
+layout_mode = 1
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 132)
+script = ExtResource("5_kt1vu")
+label_font = ExtResource("5_hj4rt")
