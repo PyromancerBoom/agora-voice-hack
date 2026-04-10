@@ -1,7 +1,12 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Shader" path="res://shaders/mystery_grade.gdshader" id="1_xq7jv"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2_e0q11"]
+[ext_resource type="Texture2D" path="res://assets/characters/detective_idle.svg" id="3_g7wbe"]
+[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_0.svg" id="4_7g0ar"]
+[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_1.svg" id="5_guw7o"]
+[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_2.svg" id="6_cms5n"]
+[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_3.svg" id="7_kdjc7"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hh1g0"]
 shader = ExtResource("1_xq7jv")
@@ -14,6 +19,34 @@ font_size = 18
 font_color = Color(0.952941, 0.956863, 0.886275, 1)
 outline_size = 8
 outline_color = Color(0.0313726, 0.0392157, 0.0470588, 0.85)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_detective"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_g7wbe")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_7g0ar")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_guw7o")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_cms5n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_kdjc7")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}]
 
 [node name="root" type="Node2D"]
 
@@ -132,20 +165,11 @@ position = Vector2(0, 6)
 color = Color(0, 0, 0, 0.22)
 polygon = PackedVector2Array(-20, 0, -14, -6, 14, -6, 20, 0, 14, 6, -14, 6)
 
-[node name="Coat" type="Polygon2D" parent="World/Actors/Player"]
-position = Vector2(0, -14)
-color = Color(0.215686, 0.435294, 0.556863, 1)
-polygon = PackedVector2Array(-16, -3, 16, -3, 12, 24, -12, 24)
-
-[node name="Head" type="Polygon2D" parent="World/Actors/Player"]
-position = Vector2(0, -37)
-color = Color(0.945098, 0.815686, 0.67451, 1)
-polygon = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
-
-[node name="Hat" type="Polygon2D" parent="World/Actors/Player"]
-position = Vector2(0, -48)
-color = Color(0.0705882, 0.0823529, 0.0862745, 1)
-polygon = PackedVector2Array(-15, -2, 15, -2, 11, 8, -11, 8)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/Actors/Player"]
+position = Vector2(0, -31)
+sprite_frames = SubResource("SpriteFrames_detective")
+animation = &"idle"
+scale = Vector2(1.4, 1.4)
 
 [node name="Camera2D" type="Camera2D" parent="World/Actors/Player"]
 position = Vector2(0, -84)
