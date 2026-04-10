@@ -28,6 +28,8 @@ var _current_phase := "investigation"
 
 # Voice / NPC conversation state
 var _voice_webview: Node = null
+var _webview_page_ready := false
+var _pending_join_msg := ""
 var _awaiting_voice_leave := false
 var _leave_fallback_timer: SceneTreeTimer = null
 var _npcs: Array[Node2D] = []
@@ -177,14 +179,14 @@ func _on_leave_fallback_timeout() -> void:
 
 func _setup_voice_webview() -> void:
 	if not ClassDB.class_exists("WebView"):
-		push_warning("[main_scene] Godot WRY WebView not found — voice disabled. Install the WRY plugin.")
+		# No WRY plugin — will use OS.shell_open() browser fallback instead
+		push_warning("[main_scene] WRY not found — using browser fallback for voice.")
 		return
 	_voice_webview = ClassDB.instantiate("WebView")
 	if _voice_webview == null:
-		push_warning("[main_scene] Could not instantiate WebView.")
+		push_warning("[main_scene] Could not instantiate WebView — using browser fallback.")
 		return
 
-	# Hidden container for audio-only WebView
 	var host := Control.new()
 	host.name = "VoiceWebViewHost"
 	host.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -210,6 +212,11 @@ func _on_voice_ipc(message: String) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	var msg_type := str(data.get("type", ""))
+	if msg_type == "voice_page" and str(data.get("status", "")) == "ready":
+		_webview_page_ready = true
+		if _pending_join_msg != "":
+			_voice_webview.call("post_message", _pending_join_msg)
+			_pending_join_msg = ""
 	if msg_type == "voice_status":
 		var st := str(data.get("status", ""))
 		if st == "left" and _awaiting_voice_leave:
@@ -233,7 +240,15 @@ func _on_session_initialized(_npcs: Array) -> void:
 
 func _on_npc_session_started(_npc_id: String, app_id: String, channel: String, rtc_token: String, player_uid: int) -> void:
 	if _voice_webview == null:
-		push_warning("[main_scene] Voice WebView not available — audio will not work")
+		# Browser fallback: open voice page with join params in URL
+		var url := "%s/agora-voice?appId=%s&channel=%s&token=%s&uid=%d" % [
+			GameSessionManager.SERVER_URL,
+			app_id.uri_encode(),
+			channel.uri_encode(),
+			rtc_token.uri_encode(),
+			player_uid,
+		]
+		OS.shell_open(url)
 		return
 	var msg := {
 		"action": "join",
@@ -242,7 +257,10 @@ func _on_npc_session_started(_npc_id: String, app_id: String, channel: String, r
 		"token": rtc_token,
 		"uid": player_uid,
 	}
-	_voice_webview.call("post_message", JSON.stringify(msg))
+	_pending_join_msg = JSON.stringify(msg)
+	if _webview_page_ready:
+		_voice_webview.call("post_message", _pending_join_msg)
+		_pending_join_msg = ""
 
 
 func _on_npc_session_ended(npc_id: String, breakdown: int, trust: int, tier: String, journal_entry: Dictionary) -> void:

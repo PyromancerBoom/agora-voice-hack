@@ -1,5 +1,5 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1775807136
+::res://::1775808389
 ::res://assets/::1775805935
 icon.svg::CompressedTexture2D::4086812585934119774::1775790296::1775802664::1::::<><><>0<>0<>0d76bee0bfcd703a0d5dd569fbae7297<>res://.godot/imported/icon.svg-56083ea2a1f1a4f1e49773bdc6d7826c.ctex::
 logo.png::CompressedTexture2D::3951491833471591223::1775804484::1775805935::1::::<><><>0<>0<>25210d6627f7fc5dc27bb6cc39369582<>res://.godot/imported/logo.png-e2220799298e3631eb0e245316e0501a.ctex::
@@ -58,7 +58,7 @@ maid_walk_3.svg::CompressedTexture2D::341369153223226041::1775804484::1775805934
 LilitaOne-Regular.ttf::FontFile::1948346243128828350::1775790296::1775802664::1::::<><><>0<>0<>c32070deaf5052be65f478dd0f6ce8b4<>res://.godot/imported/LilitaOne-Regular.ttf-3fc5417b202255ea31131e19ae8ead4f.fontdata::
 ::res://assets/ui/::1775805934
 journal_open.png::CompressedTexture2D::2090289540244162922::1775804484::1775805934::1::::<><><>0<>0<>dc704d2568720daa94e9dbd5f3fb7267<>res://.godot/imported/journal_open.png-12d5bc0157a0203d558515bba8c7bc35.ctex::
-::res://scenes/::1775806859
+::res://scenes/::1775808245
 agora_test.tscn::PackedScene::-1::1775804484::0::1::::<><><>0<>0<><>::res://scripts/agora_test_scene.gd
 game_session_manager.tscn::PackedScene::-1::1775806606::0::1::::<><><>0<>0<><>::res://scripts/game_session_manager.gd
 house_seven_rooms.tscn::PackedScene::8542716488114915796::1775804484::0::1::::<><><>0<>0<><>::
@@ -71,14 +71,15 @@ round_timer.tscn::PackedScene::-1::1775804484::0::1::::<><><>0<>0<><>::res://scr
 shader.tscn::PackedScene::-1::1775790296::0::1::::<><><>0<>0<><>::res://shaders/mystery_grade.gdshader
 start_sequence.tscn::PackedScene::-1::1775804484::0::1::::<><><>0<>0<><>::res://shaders/mystery_grade.gdshader<>res://scripts/player_controller.gd<>res://scripts/start_sequence.gd<>res://assets/characters/detective_idle.png<>res://assets/characters/detective_walk_0.png<>res://assets/characters/detective_walk_1.png<>res://scripts/interaction_prompt.gd<>res://assets/fonts/LilitaOne-Regular.ttf<>res://assets/characters/detective_walk_2.png<>res://assets/characters/detective_walk_3.png<>res://scenes/journal.tscn
 title_screen.tscn::PackedScene::-1::1775804484::0::1::::<><><>0<>0<><>::res://scripts/title_screen.gd<>res://assets/fonts/LilitaOne-Regular.ttf
-::res://scripts/::1775807022
+voice_diagnostics.tscn::PackedScene::-1::1775808245::0::1::::<><><>0<>0<><>::res://scripts/voice_diagnostics.gd
+::res://scripts/::1775808264
 agora_test_scene.gd::GDScript::2041086622003339157::1775804484::0::1::::<>Control<><>0<>0<><>::
 game_session_manager.gd::GDScript::36127547972951533::1775806802::0::1::::<>Node<><>0<>0<><>::
 interaction_prompt.gd::GDScript::6561283344200416486::1775790296::0::1::::<>Control<><>0<>0<><>::
 item_scene.gd::GDScript::1965183625730235157::1775790296::0::1::::<>Node2D<><>0<>0<><>::
-journal_view.gd::GDScript::669173320250567923::1775806915::0::1::::<>Control<><>0<>0<><>::
+journal_view.gd::GDScript::669173320250567923::1775807225::0::1::::<>Control<><>0<>0<><>::
 main_item_scene.gd::GDScript::6959504052207501283::1775792450::0::1::::<>Node2D<><>0<>0<><>::
-main_scene.gd::GDScript::8319828110252250963::1775807022::0::1::::<>Node2D<><>0<>0<><>::
+main_scene.gd::GDScript::8319828110252250963::1775807258::0::1::::<>Node2D<><>0<>0<><>::
 main_scene_controller.gd::GDScript::195104980520797532::1775806782::0::1::::<>Node2D<><>0<>0<><>::
 minimap_view.gd::GDScript::5527035159400423912::1775804484::0::1::::<>Control<><>0<>0<><>::
 npc_actor.gd::GDScript::1528345247934508631::1775806703::0::1::::<>Node2D<><>0<>0<><>::
@@ -86,6 +87,7 @@ player_controller.gd::GDScript::6455696075505007558::1775805227::0::1::::<>Chara
 round_timer.gd::GDScript::7808995640525766775::1775804484::0::1::::<>Control<><>0<>0<><>::
 start_sequence.gd::GDScript::1337345181542244295::1775804484::0::1::::<>Node2D<><>0<>0<><>::
 title_screen.gd::GDScript::3818293882983515981::1775804484::0::1::::<>Control<><>0<>0<><>::
+voice_diagnostics.gd::GDScript::7374692452979520411::1775808226::0::1::::<>Control<><>0<>0<><>::
 voice_prompt.gd::GDScript::3438492715495694363::1775804484::0::1::::<>Control<><>0<>0<><>::
 ::res://shaders/::1775804484
 forest_palette.gdshaderinc::ShaderInclude::4593903634566639359::1775804484::0::1::::<><><>0<>0<><>::
