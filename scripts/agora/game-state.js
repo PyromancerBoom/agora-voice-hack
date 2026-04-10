@@ -3,6 +3,18 @@ const scenarios = require("./data/scenarios.json");
 
 const sessions = new Map();
 
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, session] of sessions) {
+    if (now - session.createdAt > SESSION_TTL_MS) {
+      sessions.delete(id);
+      console.log(`[game-state] Expired session ${id}`);
+    }
+  }
+}, 10 * 60 * 1000).unref();
+
 function getTier(breakdown) {
   if (breakdown < 30) return "calm";
   if (breakdown < 60) return "nervous";
@@ -118,6 +130,10 @@ function getFullState(sessionId) {
   };
 }
 
+function deleteSession(sessionId) {
+  return sessions.delete(sessionId);
+}
+
 module.exports = {
   getTier,
   createSession,
@@ -130,6 +146,7 @@ module.exports = {
   addJournalEntry,
   getPublicNpcState,
   getFullState,
+  deleteSession,
   npcProfiles,
   scenarios,
 };

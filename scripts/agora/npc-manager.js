@@ -13,6 +13,9 @@ const NPC_GREETING = "Good evening, detective. What is it you want?";
 /** Last resort if nothing else validates (Adam — common preset voice). */
 const BUILTIN_DEFAULT_VOICE = "pNInz6obpgDQGcFmaJgB";
 
+/** Cache validated voice IDs per NPC so we only hit ElevenLabs once per process. */
+const voiceIdCache = new Map();
+
 function useInlineConfig() {
   const llmKey = process.env.MISTRAL_API_KEY || process.env.OPENAI_API_KEY;
   return Boolean(llmKey && process.env.ELEVENLABS_API_KEY);
@@ -94,6 +97,11 @@ async function resolveVoiceIdForNpc(npcProfile) {
     throw new Error("ELEVENLABS_API_KEY is required for inline TTS");
   }
 
+  // Return cached result — no need to re-validate on every NPC switch.
+  if (voiceIdCache.has(npcProfile.npcId)) {
+    return voiceIdCache.get(npcProfile.npcId);
+  }
+
   const candidates = voiceIdCandidates(npcProfile);
   const debug = process.env.ELEVENLABS_VOICE_DEBUG === "1";
   const skipValidate = process.env.ELEVENLABS_SKIP_VOICE_VALIDATE === "1";
@@ -103,6 +111,7 @@ async function resolveVoiceIdForNpc(npcProfile) {
     console.warn(
       `[ElevenLabs] ${npcProfile.npcId}: ELEVENLABS_SKIP_VOICE_VALIDATE=1 — using first candidate without check: ${chosen}`
     );
+    voiceIdCache.set(npcProfile.npcId, chosen);
     return chosen;
   }
 
@@ -123,6 +132,7 @@ async function resolveVoiceIdForNpc(npcProfile) {
           `[ElevenLabs] ${npcProfile.npcId}: using voice_id=${candidate}`
         );
       }
+      voiceIdCache.set(npcProfile.npcId, candidate);
       return candidate;
     }
     console.warn(
@@ -156,6 +166,11 @@ function buildTtsConfig(voiceIdOrProfile) {
       sample_rate: 24000,
     },
   };
+}
+
+/** Small pause so Agora fully releases a channel before we re-use it. */
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 async function spawnNpcAgent(npcProfile, npcState, scenario, playerUid) {
@@ -193,7 +208,13 @@ async function spawnNpcAgent(npcProfile, npcState, scenario, playerUid) {
     sessionInput.pipelineId = process.env.AGORA_DEFAULT_PIPELINE_ID;
   }
 
+  console.log(
+    `[npc-manager] Spawning agent for ${npcProfile.npcId} on channel ${npcState.channelName} (playerUid=${playerUid}, agentUid=${agentUid})`
+  );
   const result = await startSession(sessionInput);
+  console.log(
+    `[npc-manager] Agent spawned for ${npcProfile.npcId}: agent_id=${result.agent.agent_id}`
+  );
 
   npcState.activeAgentId = result.agent.agent_id;
   return result;
@@ -205,15 +226,26 @@ async function despawnNpcAgent(npcState) {
   }
 
   const agentId = npcState.activeAgentId;
+  console.log(
+    `[npc-manager] Stopping agent for ${npcState.npcId}: agent_id=${agentId}`
+  );
   try {
     await stopSession({
       agentId,
       channel: npcState.channelName,
       agentUid: NPC_AGENT_UIDS[npcState.npcId],
     });
+    console.log(`[npc-manager] Agent stopped for ${npcState.npcId}`);
+  } catch (e) {
+    console.warn(
+      `[npc-manager] Stop failed for ${npcState.npcId} (agent_id=${agentId}): ${e.message} — clearing state anyway`
+    );
   } finally {
     npcState.activeAgentId = null;
   }
+
+  // Give Agora ~1s to fully release the channel before the next spawn.
+  await sleep(1000);
 
   return { ok: true, agent_id: agentId };
 }

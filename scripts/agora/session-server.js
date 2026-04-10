@@ -17,6 +17,7 @@ const {
   addJournalEntry,
   getPublicNpcState,
   getFullState,
+  deleteSession,
 } = require("./game-state");
 const { spawnNpcAgent, despawnNpcAgent } = require("./npc-manager");
 
@@ -173,6 +174,23 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "POST" && pathname === "/api/game/end") {
+      const body = parseJsonBody(await readRequestBody(req));
+      const session = requireSession(body.sessionId);
+      for (const npc of session.npcs) {
+        if (npc.activeAgentId) {
+          try {
+            await despawnNpcAgent(npc);
+          } catch (e) {
+            console.warn(`[game/end] Failed to stop agent for ${npc.npcId}:`, e.message);
+          }
+        }
+      }
+      deleteSession(body.sessionId);
+      send(res, createJsonResponse(200, { ok: true, sessionId: body.sessionId }));
+      return;
+    }
+
     // ── NPC routes ───────────────────────────────────────────────────────────
 
     const interactNpcId = matchNpcRoute(pathname, "interact");
@@ -187,11 +205,33 @@ const server = http.createServer(async (req, res) => {
         await despawnNpcAgent(npcState);
       }
 
+      const resolvedUid = Number(playerUid);
+      if (!resolvedUid) {
+        console.warn(
+          `[interact] playerUid missing or zero for NPC ${interactNpcId} — defaulting to 5000. ` +
+          `Agent will only respond to UID 5000; ensure client joins with the same UID.`
+        );
+      }
+
+      // Enforce one active NPC agent at a time for stable demos and lower quota usage.
+      for (const otherNpc of session.npcs) {
+        if (otherNpc.npcId !== interactNpcId && otherNpc.activeAgentId) {
+          try {
+            await despawnNpcAgent(otherNpc);
+          } catch (e) {
+            console.warn(
+              `[interact] Failed to stop active NPC ${otherNpc.npcId} before switching to ${interactNpcId}:`,
+              e.message
+            );
+          }
+        }
+      }
+
       const result = await spawnNpcAgent(
         npcProfile,
         npcState,
         session.scenario,
-        Number(playerUid) || 5000
+        resolvedUid || 5000
       );
 
       send(
@@ -268,6 +308,7 @@ const server = http.createServer(async (req, res) => {
           "GET  /api/game/state?sessionId=",
           "POST /api/game/accuse",
           "POST /api/game/evidence",
+          "POST /api/game/end",
           "POST /api/npc/:id/interact",
           "POST /api/npc/:id/end",
           "POST /api/npc/:id/emotion",
@@ -275,12 +316,17 @@ const server = http.createServer(async (req, res) => {
       })
     );
   } catch (error) {
-    send(
-      res,
-      createJsonResponse(400, {
-        error: error.message,
-      })
-    );
+    const msg = error.message || "Unknown error";
+    const status =
+      msg.startsWith("No active game session") ||
+      msg.startsWith("Unknown NPC") ||
+      msg.startsWith("No profile for NPC") ||
+      msg.startsWith("No agent UID")
+        ? 404
+        : msg.startsWith("Agora API")
+        ? 502
+        : 400;
+    send(res, createJsonResponse(status, { error: msg }));
   }
 });
 
@@ -290,6 +336,7 @@ server.listen(port, () => {
   console.log("  POST /api/game/start");
   console.log("  GET  /api/game/state?sessionId=...");
   console.log("  POST /api/game/accuse");
+  console.log("  POST /api/game/end");
   console.log("  POST /api/npc/:id/interact");
   console.log("  POST /api/npc/:id/end");
   console.log("  POST /api/npc/:id/emotion");
