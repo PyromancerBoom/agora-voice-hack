@@ -74,10 +74,12 @@ function parseJsonBody(raw) {
   }
 
   if (Buffer.isBuffer(raw)) {
+    if (raw.length === 0) return {};
     return JSON.parse(raw.toString("utf8"));
   }
 
   if (typeof raw === "string") {
+    if (raw.trim() === "") return {};
     return JSON.parse(raw);
   }
 
