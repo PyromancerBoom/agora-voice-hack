@@ -2,11 +2,9 @@
 
 [ext_resource type="Shader" path="res://shaders/mystery_grade.gdshader" id="1_xq7jv"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2_e0q11"]
-[ext_resource type="Texture2D" path="res://assets/characters/detective_idle.png" id="3_g7wbe"]
-[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_0.png" id="4_7g0ar"]
-[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_1.png" id="5_guw7o"]
-[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_2.png" id="6_cms5n"]
-[ext_resource type="Texture2D" path="res://assets/characters/detective_walk_3.png" id="7_kdjc7"]
+[ext_resource type="Script" path="res://scripts/start_sequence.gd" id="3_4n0sx"]
+[ext_resource type="Script" path="res://scripts/interaction_prompt.gd" id="5_l61pp"]
+[ext_resource type="FontFile" path="res://assets/fonts/LilitaOne-Regular.ttf" id="5_qr4sr"]
 [ext_resource type="PackedScene" path="res://scenes/journal.tscn" id="8_sh0kh"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hh1g0"]
@@ -15,41 +13,17 @@ shader = ExtResource("1_xq7jv")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_j2nfa"]
 size = Vector2(34, 18)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
+size = Vector2(164, 30)
+
 [sub_resource type="LabelSettings" id="LabelSettings_3aovx"]
 font_size = 18
 font_color = Color(0.952941, 0.956863, 0.886275, 1)
 outline_size = 8
 outline_color = Color(0.0313726, 0.0392157, 0.0470588, 0.85)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_detective"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_g7wbe")
-}],
-"loop": true,
-"name": &"idle",
-"speed": 3.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("4_7g0ar")
-}, {
-"duration": 1.0,
-"texture": ExtResource("5_guw7o")
-}, {
-"duration": 1.0,
-"texture": ExtResource("6_cms5n")
-}, {
-"duration": 1.0,
-"texture": ExtResource("7_kdjc7")
-}],
-"loop": true,
-"name": &"walk",
-"speed": 8.0
-}]
-
 [node name="root" type="Node2D"]
+script = ExtResource("3_4n0sx")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(640, 360)
@@ -60,6 +34,10 @@ enabled = false
 [node name="MistBackdrop" type="Polygon2D" parent="World"]
 color = Color(0.784314, 0.823529, 0.694118, 1)
 polygon = PackedVector2Array(0, 0, 1280, 0, 1280, 720, 0, 720)
+
+[node name="SkyBand" type="Polygon2D" parent="World"]
+color = Color(0.917647, 0.952941, 0.862745, 0.75)
+polygon = PackedVector2Array(0, 0, 1280, 0, 1280, 238, 0, 238)
 
 [node name="ShadowGround" type="Polygon2D" parent="World"]
 color = Color(0.0823529, 0.12549, 0.117647, 1)
@@ -80,6 +58,10 @@ polygon = PackedVector2Array(1040, 0, 1140, 0, 1170, 720, 1010, 720)
 [node name="MoonGlow" type="Polygon2D" parent="World"]
 color = Color(0.980392, 0.992157, 0.921569, 0.92)
 polygon = PackedVector2Array(1010, 470, 1030, 430, 1070, 408, 1110, 420, 1140, 458, 1136, 505, 1108, 540, 1060, 548, 1025, 525)
+
+[node name="CloudShadow" type="Polygon2D" parent="World"]
+color = Color(0.603922, 0.690196, 0.607843, 0.14)
+polygon = PackedVector2Array(154, 60, 384, 28, 690, 38, 846, 84, 720, 132, 444, 138, 210, 114)
 
 [node name="LightWashLeft" type="Polygon2D" parent="World"]
 color = Color(0.913725, 0.956863, 0.866667, 0.26)
@@ -113,29 +95,125 @@ polygon = PackedVector2Array(160, 500, 370, 450, 610, 470, 860, 510, 1040, 595, 
 color = Color(0.0627451, 0.113725, 0.0901961, 1)
 polygon = PackedVector2Array(130, 340, 295, 292, 470, 322, 588, 427, 514, 544, 330, 565, 180, 502)
 
-[node name="WellStone" type="Polygon2D" parent="World"]
-color = Color(0.176471, 0.223529, 0.258824, 0.9)
-polygon = PackedVector2Array(585, 420, 705, 410, 770, 456, 752, 538, 640, 565, 560, 520)
+[node name="GardenMassLeft" type="Polygon2D" parent="World"]
+color = Color(0.054902, 0.105882, 0.0823529, 0.94)
+polygon = PackedVector2Array(84, 464, 210, 414, 372, 434, 438, 546, 314, 608, 102, 562)
 
-[node name="WellRoof" type="Polygon2D" parent="World"]
-color = Color(0.121569, 0.109804, 0.0823529, 1)
-polygon = PackedVector2Array(598, 396, 690, 372, 735, 417, 640, 440)
+[node name="GardenMassRight" type="Polygon2D" parent="World"]
+color = Color(0.0588235, 0.101961, 0.0823529, 0.92)
+polygon = PackedVector2Array(828, 450, 1032, 422, 1182, 508, 1206, 606, 1014, 632, 846, 564)
 
-[node name="WellBody" type="Polygon2D" parent="World"]
-color = Color(0.172549, 0.14902, 0.117647, 1)
-polygon = PackedVector2Array(620, 438, 702, 426, 708, 500, 618, 515)
+[node name="MansionGroundShadow" type="Polygon2D" parent="World"]
+color = Color(0.054902, 0.0823529, 0.0705882, 0.65)
+polygon = PackedVector2Array(216, 252, 1068, 252, 1164, 364, 1038, 444, 242, 444, 128, 358)
 
-[node name="ToriiBeam" type="Polygon2D" parent="World"]
-color = Color(0.0823529, 0.0705882, 0.0627451, 1)
-polygon = PackedVector2Array(310, 600, 815, 565, 948, 588, 420, 635)
+[node name="MansionRoofShadow" type="Polygon2D" parent="World"]
+color = Color(0.192157, 0.172549, 0.137255, 1)
+polygon = PackedVector2Array(248, 234, 640, 120, 1034, 234, 944, 282, 336, 282)
 
-[node name="ToriiLegLeft" type="Polygon2D" parent="World"]
-color = Color(0.0627451, 0.054902, 0.0509804, 1)
-polygon = PackedVector2Array(405, 610, 455, 608, 478, 720, 426, 720)
+[node name="MansionRoof" type="Polygon2D" parent="World"]
+color = Color(0.239216, 0.219608, 0.172549, 1)
+polygon = PackedVector2Array(268, 248, 640, 138, 1014, 248, 942, 294, 338, 294)
 
-[node name="ToriiLegRight" type="Polygon2D" parent="World"]
-color = Color(0.0627451, 0.054902, 0.0509804, 1)
-polygon = PackedVector2Array(690, 588, 742, 586, 772, 720, 718, 720)
+[node name="MansionTopWall" type="Polygon2D" parent="World"]
+color = Color(0.768627, 0.690196, 0.52549, 1)
+polygon = PackedVector2Array(340, 294, 942, 294, 930, 346, 354, 346)
+
+[node name="MansionFrontLeft" type="Polygon2D" parent="World"]
+color = Color(0.701961, 0.603922, 0.447059, 1)
+polygon = PackedVector2Array(270, 294, 430, 294, 456, 436, 248, 436)
+
+[node name="MansionFrontCenter" type="Polygon2D" parent="World"]
+color = Color(0.788235, 0.713726, 0.545098, 1)
+polygon = PackedVector2Array(430, 294, 850, 294, 850, 456, 430, 456)
+
+[node name="MansionFrontRight" type="Polygon2D" parent="World"]
+color = Color(0.690196, 0.592157, 0.435294, 1)
+polygon = PackedVector2Array(850, 294, 1010, 294, 1032, 436, 850, 436)
+
+[node name="MansionTrim" type="Polygon2D" parent="World"]
+color = Color(0.545098, 0.423529, 0.294118, 1)
+polygon = PackedVector2Array(316, 344, 964, 344, 952, 364, 330, 364)
+
+[node name="MansionPediment" type="Polygon2D" parent="World"]
+color = Color(0.815686, 0.745098, 0.580392, 1)
+polygon = PackedVector2Array(492, 248, 640, 188, 786, 248)
+
+[node name="MansionPedimentShadow" type="Polygon2D" parent="World"]
+color = Color(0.45098, 0.341176, 0.235294, 0.38)
+polygon = PackedVector2Array(520, 246, 640, 200, 760, 246, 744, 256, 536, 256)
+
+[node name="WindowLeftTop" type="Polygon2D" parent="World"]
+color = Color(0.937255, 0.901961, 0.713726, 0.78)
+polygon = PackedVector2Array(390, 320, 456, 320, 456, 370, 390, 370)
+
+[node name="WindowRightTop" type="Polygon2D" parent="World"]
+color = Color(0.937255, 0.901961, 0.713726, 0.78)
+polygon = PackedVector2Array(824, 320, 890, 320, 890, 370, 824, 370)
+
+[node name="WindowLeftBottom" type="Polygon2D" parent="World"]
+color = Color(0.964706, 0.862745, 0.615686, 0.84)
+polygon = PackedVector2Array(336, 382, 414, 382, 414, 430, 336, 430)
+
+[node name="WindowRightBottom" type="Polygon2D" parent="World"]
+color = Color(0.964706, 0.862745, 0.615686, 0.84)
+polygon = PackedVector2Array(866, 382, 944, 382, 944, 430, 866, 430)
+
+[node name="ColumnLeft" type="Polygon2D" parent="World"]
+color = Color(0.87451, 0.819608, 0.690196, 1)
+polygon = PackedVector2Array(490, 294, 530, 294, 548, 456, 500, 456)
+
+[node name="ColumnCenterLeft" type="Polygon2D" parent="World"]
+color = Color(0.890196, 0.831373, 0.701961, 1)
+polygon = PackedVector2Array(566, 294, 602, 294, 612, 456, 572, 456)
+
+[node name="ColumnCenterRight" type="Polygon2D" parent="World"]
+color = Color(0.890196, 0.831373, 0.701961, 1)
+polygon = PackedVector2Array(678, 294, 714, 294, 708, 456, 668, 456)
+
+[node name="ColumnRight" type="Polygon2D" parent="World"]
+color = Color(0.87451, 0.819608, 0.690196, 1)
+polygon = PackedVector2Array(748, 294, 788, 294, 780, 456, 732, 456)
+
+[node name="DoorFrame" type="Polygon2D" parent="World"]
+color = Color(0.329412, 0.243137, 0.14902, 1)
+polygon = PackedVector2Array(562, 320, 722, 320, 734, 456, 550, 456)
+
+[node name="Door" type="Polygon2D" parent="World"]
+color = Color(0.172549, 0.137255, 0.105882, 1)
+polygon = PackedVector2Array(584, 334, 700, 334, 708, 456, 576, 456)
+
+[node name="DoorGlow" type="Polygon2D" parent="World"]
+color = Color(0.956863, 0.917647, 0.72549, 0.3)
+polygon = PackedVector2Array(594, 344, 690, 344, 694, 448, 590, 448)
+
+[node name="DoorKnob" type="Polygon2D" parent="World"]
+color = Color(0.917647, 0.764706, 0.380392, 1)
+polygon = PackedVector2Array(672, 396, 680, 392, 686, 400, 680, 408, 672, 404)
+
+[node name="Porch" type="Polygon2D" parent="World"]
+color = Color(0.529412, 0.447059, 0.34902, 1)
+polygon = PackedVector2Array(470, 456, 810, 456, 862, 506, 418, 506)
+
+[node name="PorchStep" type="Polygon2D" parent="World"]
+color = Color(0.439216, 0.360784, 0.278431, 1)
+polygon = PackedVector2Array(442, 506, 840, 506, 882, 534, 404, 534)
+
+[node name="Path" type="Polygon2D" parent="World"]
+color = Color(0.74902, 0.678431, 0.54902, 1)
+polygon = PackedVector2Array(548, 534, 734, 534, 812, 720, 466, 720)
+
+[node name="PathShadow" type="Polygon2D" parent="World"]
+color = Color(0.298039, 0.25098, 0.196078, 0.26)
+polygon = PackedVector2Array(560, 548, 720, 548, 770, 720, 504, 720)
+
+[node name="LeftHedge" type="Polygon2D" parent="World"]
+color = Color(0.0705882, 0.121569, 0.0941176, 1)
+polygon = PackedVector2Array(226, 510, 418, 474, 474, 530, 406, 618, 220, 614, 172, 560)
+
+[node name="RightHedge" type="Polygon2D" parent="World"]
+color = Color(0.0705882, 0.121569, 0.0941176, 1)
+polygon = PackedVector2Array(820, 482, 1028, 512, 1098, 578, 1040, 634, 850, 614, 786, 540)
 
 [node name="FrontTreeLeft" type="Polygon2D" parent="World"]
 color = Color(0.0431373, 0.0588235, 0.054902, 1)
@@ -147,7 +225,18 @@ polygon = PackedVector2Array(1120, 0, 1200, 0, 1245, 720, 1095, 720)
 
 [node name="WalkPlane" type="Polygon2D" parent="World"]
 color = Color(0.658824, 0.729412, 0.6, 0.08)
-polygon = PackedVector2Array(250, 430, 725, 388, 1010, 530, 845, 675, 335, 682, 188, 548)
+polygon = PackedVector2Array(456, 438, 812, 438, 1084, 562, 958, 720, 330, 720, 190, 566)
+
+[node name="DoorThreshold" type="Area2D" parent="World"]
+position = Vector2(640, 452)
+monitoring = true
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/DoorThreshold"]
+shape = SubResource("RectangleShape2D_entrance")
+
+[node name="DoorPromptAnchor" type="Marker2D" parent="World"]
+position = Vector2(640, 424)
 
 [node name="Actors" type="Node2D" parent="World"]
 y_sort_enabled = true
@@ -156,7 +245,7 @@ y_sort_enabled = true
 position = Vector2(596, 540)
 script = ExtResource("2_e0q11")
 vertical_ratio = 0.52
-play_area = Rect2(255, 420, 700, 245)
+play_area = Rect2(218, 300, 820, 420)
 journal_path = NodePath("../../../../UI/Journal")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/Actors/Player"]
@@ -181,11 +270,6 @@ polygon = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 position = Vector2(0, -48)
 color = Color(0.0705882, 0.0823529, 0.0862745, 1)
 polygon = PackedVector2Array(-15, -2, 15, -2, 11, 8, -11, 8)
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/Actors/Player"]
-position = Vector2(0, -31)
-sprite_frames = SubResource("SpriteFrames_detective")
-animation = &"idle"
-scale = Vector2(0.42, 0.42)
 
 [node name="Camera2D" type="Camera2D" parent="World/Actors/Player"]
 position = Vector2(0, -84)
@@ -217,10 +301,38 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(1, 1, 1, 1)
 
+[node name="InteractPrompt" type="Control" parent="UI/Overlay"]
+anchors_preset = 0
+offset_right = 92.0
+offset_bottom = 92.0
+mouse_filter = 2
+script = ExtResource("5_l61pp")
+
+[node name="PromptLabel" type="Label" parent="UI/Overlay/InteractPrompt"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_fonts/font = ExtResource("5_qr4sr")
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.988235, 0.956863, 0.835294, 1)
+theme_override_colors/font_outline_color = Color(0.164706, 0.145098, 0.133333, 1)
+theme_override_constants/outline_size = 6
+text = "GO"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Fade" type="ColorRect" parent="UI/Overlay"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.0156863, 0.0156863, 0.027451, 0)
+
 [node name="Hint" type="Label" parent="UI/Overlay"]
 offset_left = 28.0
 offset_top = 26.0
-offset_right = 419.0
-offset_bottom = 74.0
+offset_right = 500.0
+offset_bottom = 96.0
 label_settings = SubResource("LabelSettings_3aovx")
-text = "Arrow keys move the detective through the 2.5D scene."
+text = "Walk up the drive and go through the mansion door to begin the investigation."

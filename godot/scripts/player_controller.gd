@@ -5,7 +5,7 @@ extends CharacterBody2D
 @export var play_area := Rect2(-430.0, -60.0, 860.0, 500.0)
 @export_node_path("Control") var journal_path: NodePath
 
-@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var sprite := get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 @onready var journal: Control = get_node_or_null(journal_path) as Control
 
 func _physics_process(_delta: float) -> void:
@@ -14,7 +14,8 @@ func _physics_process(_delta: float) -> void:
 
 	if journal != null and journal.visible:
 		velocity = Vector2.ZERO
-		sprite.play("idle")
+		if sprite != null:
+			sprite.play("idle")
 		return
 
 	var input_vector := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -27,13 +28,15 @@ func _physics_process(_delta: float) -> void:
 
 func _update_visuals(input_vector: Vector2) -> void:
 	if input_vector.is_zero_approx():
-		sprite.play("idle")
-		sprite.flip_h = false
+		if sprite != null:
+			sprite.play("idle")
+			sprite.flip_h = false
 		return
 
-	sprite.play("walk")
-	if absf(input_vector.x) > 0.15:
-		sprite.flip_h = input_vector.x < 0.0
+	if sprite != null:
+		sprite.play("walk")
+		if absf(input_vector.x) > 0.15:
+			sprite.flip_h = input_vector.x < 0.0
 
 
 func _toggle_journal() -> void:
