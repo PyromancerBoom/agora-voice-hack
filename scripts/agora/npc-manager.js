@@ -17,7 +17,7 @@ const BUILTIN_DEFAULT_VOICE = "pNInz6obpgDQGcFmaJgB";
 const voiceIdCache = new Map();
 
 function useInlineConfig() {
-  const llmKey = process.env.MISTRAL_API_KEY || process.env.OPENAI_API_KEY;
+  const llmKey = process.env.GROQ_API_KEY || process.env.MISTRAL_API_KEY || process.env.OPENAI_API_KEY;
   return Boolean(llmKey && process.env.ELEVENLABS_API_KEY);
 }
 
@@ -45,7 +45,6 @@ function buildLlmConfig(systemPrompt) {
     : "gpt-4o-mini";
 
   return {
-    vendor: "custom",
     url,
     api_key,
     system_messages: [{ role: "system", content: systemPrompt }],
@@ -54,7 +53,6 @@ function buildLlmConfig(systemPrompt) {
       model: process.env.LLM_MODEL || defaultModel,
       max_tokens: 512,
       temperature: 0.7,
-      stream: true,
     },
   };
 }
